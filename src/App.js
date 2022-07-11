@@ -5,7 +5,9 @@ import "./App.css";
 
 function App() {
   const [movies, setMovie] = useState([]);
-  
+  const [isLoading, setIsLoading] = useState(false);
+  const [isError, setIsError] = useState(null);
+
   //Using promises
   // const fetchMovieHandler = () => {
   //   fetch("https://swapi.dev/api/films/")
@@ -26,20 +28,34 @@ function App() {
   // };
 
   //Using asynchronous
+
   async function fetchMovieHandler() {
-    const response = await fetch("https://swapi.dev/api/films/");
+    setIsError(null);
+    setIsLoading(true);
+    try {
+      
+      
+      const response = await fetch("https://swapi.dev/api/films/");
+      if(!response.ok){
+        throw new Error("Something went Wrong!!");
+      }
+      const data = await response.json(); //This line trandform the json into javascript object
+      
 
-    const data = await response.json(); //This line trandform the json into javascript object
-
-    const transformedData = data.results.map((movieData) => {
-      return {
-        id: movieData.episode_id,
-        title: movieData.title,
-        openingText: movieData.opening_crawl,
-        releaseDate: movieData.release_date,
-      };
-    });
-    setMovie(transformedData);
+      const transformedData = data.results.map((movieData) => {
+        return {
+          id: movieData.episode_id,
+          title: movieData.title,
+          openingText: movieData.opening_crawl,
+          releaseDate: movieData.release_date,
+        };
+      });
+      setMovie(transformedData);
+      
+    } catch (error) {
+      setIsError(error.message);
+    }
+    setIsLoading(false);
   }
 
   return (
@@ -48,7 +64,9 @@ function App() {
         <button onClick={fetchMovieHandler}>Fetch Movies</button>
       </section>
       <section>
-        <MoviesList movies={movies} />
+        {!isLoading && <MoviesList movies={movies} />}
+        {isLoading && <p>Loading...</p>}
+        {!isLoading && isError && <p>{isError}</p>}
       </section>
     </React.Fragment>
   );
